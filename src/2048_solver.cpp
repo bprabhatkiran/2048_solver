@@ -26,7 +26,7 @@ struct result_t minmax(Board board, int playerIndex, int depth);
 int main() {
 
 	// unsigned short input[4][4] = {0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0};
-	unsigned short input[4][4] = {2,4,16,8,16,8,4,0,4,0,0,0,2,0,0,0};
+	unsigned short input[4][4] = {4,4,2,2,0,16,16,2,2,0,8,0,0,0,2,0};
 
 	unsigned short position[4][4] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
@@ -42,9 +42,7 @@ int main() {
 	// }
 
 	Board board(input);
-	board.printBoard();
-
-	int playerIndex = 1;
+	// board.printBoard();
 
 	while(1) {
 		if(!board.canMakeMove()) {
@@ -52,30 +50,36 @@ int main() {
 			break;
 		}
 
-		struct result_t result = minmax(board, playerIndex, 0);
+		cout<<"Solving this board"<<endl;
+		board.printBoard();
+
+		struct result_t result = minmax(board, 1, 0);
 
 		// int pause;
 		// cin>>pause;
 
 		switch(result.direction) {
 			case Down:
+				cout<<"Moved down"<<endl;
 				board.moveToBottom();
 				break;
 			case Up:
+				cout<<"Moved up"<<endl;
 				board.moveToTop();
 				break;
 			case Right:
+				cout<<"Moved right"<<endl;
 				board.moveToRight();
 				break;
 			case Left:
+				cout<<"Moved left"<<endl;
 				board.moveToLeft();
 				break;
 			case NotDefined:
-				cout<<"Nothing left to do"<<endl;
+				cout<<"How did the control get here"<<endl;
 				board.printBoard();
 				return 0;
 		}
-		board.printBoard();
 		
 		// Get the next board
 		// cout<<endl<<endl;
@@ -102,12 +106,12 @@ struct result_t minmax(Board board, int playerIndex, int depth) {
 	}
 
 	/*
-	 * Player index = 1, meaning out turn to play the game
+	 * Player index = 1, meaning our turn to play the game
 	 * Player index = -1, meaning computer is going to randomly insert a tile
 	 */
 
 	 if(playerIndex == 1) {
-	 	struct result_t results[4];
+	 	vector<struct result_t> results;
 
 	 	for(int i=0;i<4;i++) {
 	 		Board newBoard(board);
@@ -124,24 +128,28 @@ struct result_t minmax(Board board, int playerIndex, int depth) {
 	 		case Left:
 	 			newBoard.moveToLeft();
 	 			break;
-	 		case NotDefined:
-	 			cout<<"Not defined in the evaluation of player 1 index"<<endl;
+	 		default:
 	 			break;
 		 	}
-		 	results[i] = minmax(newBoard, (playerIndex * -1), (depth + 1));
+
+		 	if(newBoard.isEqual(board)) {
+		 		continue;
+		 	} else {
+		 		struct result_t result = minmax(newBoard, (playerIndex * -1), (depth + 1));
+		 		result.direction = (direction_t)i;
+		 		results.push_back(result);
+		 	}
 		 }
+
 		 long long maxValue = -1;
 		 int index = -1;
-		 for(int i=0;i<4;i++) {
+		 for(std::vector<int>::size_type i = 0; i != results.size(); i++) {
 		 	if(results[i].eval > maxValue) {
 		 		index = i;
 		 		maxValue = results[i].eval;
 		 	}
 		 }
-		 struct result_t result;
-		 result.eval = maxValue;
-		 result.direction = (direction_t)index;
-		 return result;
+		 return results[index];
 	}
 
 	// This is the case where the computer puts a random tile and we are going to do an exhaustive search

@@ -29,8 +29,6 @@ Board::Board(const unsigned short input[4][4]) {
 }
 
 void Board::printBoard() {
-	cout<<"Printing the matrix"<<endl<<endl;
-
 	for(int i=0;i<4;i++) {
 		for(int j=0;j<4;j++) {
 			cout<<"\t\t"<<matrix[i][j]<<"\t\t";
@@ -100,9 +98,15 @@ void Board::moveToRight() {
 	for (i=0;i<4; i++) {
 		// For each row, move the units to the right starting from the right
 		for(j=2;j>=0;j--) {
-			if(matrix[i][j] == 0)
+			if(matrix[i][j] <= 0)
 	 			continue;
 			moveTileToTheRight(i,j);
+		}
+	}
+	for (i=0;i<4; i++) {
+		for(j=0;j<4;j++) {
+			if(matrix[i][j] < 0)
+	 			matrix[i][j] = 0;
 		}
 	}
 }
@@ -124,10 +128,14 @@ void Board::moveTileToTheRight(int i, int j) {
 		matrix[i][j+1] = matrix[i][j];
 		matrix[i][j] = 0;
 		moveTileToTheRight(i,j+1);
+	} else if(matrix[i][j+1] < 0) {
+		matrix[i][j+1] = matrix[i][j];
+		matrix[i][j] = 0;
 	} else if(matrix[i][j+1] == matrix[i][j]) {
 		// Merge it and make way for the next tile
 		matrix[i][j+1] = matrix[i][j+1] << 1;
-		matrix[i][j] = 0;
+		// Mark it as -1, so that we dont merge anything after that
+		matrix[i][j] = -1;
 	}
 	// Oh good, you can do nothing, just return
 	return;
@@ -138,9 +146,16 @@ void Board::moveToLeft() {
 	for (i=0;i<4; i++) {
 		// For each row, move the units to the left starting from the left
 		for(j=1;j<=3;j++) {
-			if(matrix[i][j] == 0)
+			if(matrix[i][j] <= 0)
 	 			continue;
 			moveTileToTheLeft(i,j);
+		}
+	}
+
+	for (i=0;i<4; i++) {
+		for(j=0;j<4;j++) {
+			if(matrix[i][j] < 0)
+	 			matrix[i][j] = 0;
 		}
 	}
 }
@@ -161,10 +176,13 @@ void Board::moveTileToTheLeft(int i, int j) {
 		matrix[i][j-1] = matrix[i][j];
 		matrix[i][j] = 0;
 		moveTileToTheLeft(i,j-1);
+	} else if(matrix[i][j-1] < 0) {
+		matrix[i][j-1] = matrix[i][j];
+		matrix[i][j] = 0;
 	} else if(matrix[i][j-1] == matrix[i][j]) {
 		// Merge it and make way for the next tile
 		matrix[i][j-1] = matrix[i][j-1] << 1;
-		matrix[i][j] = 0;
+		matrix[i][j] = -1;
 	}
 	// Oh good, you can do nothing, just return
 	return;
@@ -175,9 +193,16 @@ void Board::moveToTop() {
 	for (j=0;j<4; j++) {
 		// For each column, move the units to the top starting from the top
 		for(i=1;i<4;i++) {
-			if(matrix[i][j] == 0)
+			if(matrix[i][j] <= 0)
 	 			continue;
 			moveTileToTheTop(i,j);
+		}
+	}
+
+	for (i=0;i<4; i++) {
+		for(j=0;j<4;j++) {
+			if(matrix[i][j] < 0)
+	 			matrix[i][j] = 0;
 		}
 	}
 }
@@ -198,10 +223,13 @@ void Board::moveTileToTheTop(int i, int j) {
 		matrix[i-1][j] = matrix[i][j];
 		matrix[i][j] = 0;
 		moveTileToTheTop(i,j-1);
+	} else if(matrix[i-1][j] < 0) {
+		matrix[i-1][j] = matrix[i][j];
+		matrix[i][j] = 0;
 	} else if(matrix[i-1][j] == matrix[i][j]) {
 		// Merge it and make way for the next tile
 		matrix[i-1][j] = matrix[i-1][j] << 1;
-		matrix[i][j] = 0;
+		matrix[i][j] = -1;
 	}
 	// Oh good, you can do nothing, just return
 	return;
@@ -212,9 +240,16 @@ void Board::moveToBottom() {
 	for (j=0;j<4; j++) {
 		// For each column, move the units to the bottom starting from the bottom
 		for(i=2;i>=0;i--) {
-			if(matrix[i][j] == 0)
+			if(matrix[i][j] <= 0)
 	 			continue;
 			moveTileToTheBottom(i,j);
+		}
+	}
+
+	for (i=0;i<4; i++) {
+		for(j=0;j<4;j++) {
+			if(matrix[i][j] < 0)
+	 			matrix[i][j] = 0;
 		}
 	}
 }
@@ -234,10 +269,13 @@ void Board::moveTileToTheBottom(int i, int j) {
 		matrix[i+1][j] = matrix[i][j];
 		matrix[i][j] = 0;
 		moveTileToTheBottom(i+1,j);
+	} else if(matrix[i+1][j] < 0) {
+		matrix[i+1][j] = matrix[i][j];
+		matrix[i][j] = 0;
 	} else if(matrix[i+1][j] == matrix[i][j]) {
 		// Merge it and make way for the next tile
 		matrix[i+1][j] = matrix[i+1][j] << 1;
-		matrix[i][j] = 0;
+		matrix[i][j] = -1;
 	}
 	// Oh good, you can do nothing, just return
 	return;
