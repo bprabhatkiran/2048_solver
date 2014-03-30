@@ -7,15 +7,49 @@
 //============================================================================
 
 #include <iostream>
+
+#include "Board.h"
+
 using namespace std;
+
+void solve(Board board);
+long long evaluate(Board board, int depth);
+long long maxFourLong(long long a, long long b, long long c, long long d);
+int moveToMake(long long a, long long b, long long c, long long d);
 
 #define MAX_DEPTH 8
 
 int main() {
-	Board board;
+
+	unsigned short input[4][4];
+
+	for(int i=0;i<4;i++) {
+		for(int j=0;j<4;j++) {
+			cin>>input[i][j];
+		}
+	}
+
+	Board board(input);
 
 	while(1) {
 		solve(board);
+		if(!board.canMakeMove()) {
+			cout<<"Thats the end of it"<<endl;
+			break;
+		}
+		// Get the next board
+		cout<<endl<<endl;
+		int i, j, pos;
+		int val;
+		cin>>pos;
+		i = pos/4;
+		j = pos%4;
+		cin>>val;
+		board.insertTile(i, j, val);
+		if(!board.canMakeMove()) {
+			cout<<"Thats the end of it"<<endl;
+			break;
+		}
 	}
 
 	return 0;

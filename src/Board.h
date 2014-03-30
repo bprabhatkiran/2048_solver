@@ -8,6 +8,10 @@
 #ifndef BOARD_H_
 #define BOARD_H_
 
+#include <vector>
+
+using namespace std;
+
 class Board {
 	unsigned short matrix[4][4];
 
@@ -17,11 +21,19 @@ class Board {
 	void moveTileToTheBottom(int i,int j);
 public:
 	Board(const Board& board);
+	Board(const unsigned short input[4][4]);
+
 	Board boardAfterMoveToRight();
 	Board boardAfterMoveToLeft();
 	Board boardAfterMoveToTop();
 	Board boardAfterMoveToBottom();
+
+	vector<int> availableCells();
+	bool canMakeMove();
+
 	void addRandomTile();
+	void insertTile(int posi, int posj, int value);
+
 	long long evaluate();
 
 	void printBoard();

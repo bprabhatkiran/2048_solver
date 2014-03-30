@@ -8,6 +8,7 @@
 #include "Board.h"
 
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -21,6 +22,16 @@ Board::Board(const Board& board) {
 	}
 }
 
+Board::Board(const unsigned short input[4][4]) {
+	int i = 0,j = 0;
+
+	for (;i<4;i++) {
+		for(;j<4;j++) {
+			this->matrix[i][j] = input[i][j];
+		}
+	}
+}
+
 void Board::printBoard() {
 	cout<<"Printing the matrix"<<endl<<endl;
 
@@ -30,6 +41,50 @@ void Board::printBoard() {
 		}
 		cout<<endl;
 	}
+}
+
+void Board::insertTile(int posi, int posj, int value) {
+	this->matrix[posi][posj] = value;
+}
+
+vector<int> Board::availableCells() {
+	vector<int> availableCells;
+
+	for(int i=0;i<4;i++) {
+		for(int j=0;j<4;j++) {
+			if(matrix[i][j] == 0) {
+				int pos = i*4 + j;
+				availableCells.push_back(pos);
+			}
+		}
+	}
+	return availableCells;
+}
+
+bool Board::canMakeMove() {
+	vector<int> availableCells = availableCells();
+
+	if(availableCells.size() == 0) {
+		return false;
+	}
+
+	return true;
+}
+
+void Board::addRandomTile() {
+	vector<int> availableCells = availableCells();
+	int index = rand()%availableCells.size();
+	int pos = availableCells.at(index);
+
+	int i = pos/4;
+	int j = pos%4;
+	int val = 2;
+
+	int random = rand()%90;
+	if(random > 90) {
+		val = 4;
+	}
+	insertTile(i, j, val);
 }
 
 Board Board::boardAfterMoveToRight() {
@@ -196,6 +251,21 @@ long long Board::evaluate() {
 	 */
 
 	long long eval = 0;
+
+	if(!canMakeMove()) {
+		int maxValue = -1;
+		for(int i=0;i<4;i++) {
+			for(int j=0;j<4;j++) {
+				if(maxValue < matrix[i][j]) {
+					maxValue = matrix[i][j];
+				}
+			}
+		}
+		if((maxValue/2048) >0) {
+			return ((maxValue/2048) * 100000);
+		}
+		return maxValue;
+	}
 
 	int posi = -1;
 	int posj = -1;
