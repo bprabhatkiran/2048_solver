@@ -23,7 +23,6 @@ Board::Board(const Board& board) {
 Board::Board(const unsigned short input[4][4]) {
 	for (int i=0;i<4;i++) {
 		for(int j=0;j<4;j++) {
-			cout<<i<<"\t\t"<<j<<"\t\t"<<input[i][j]<<endl;
 			matrix[i][j] = input[i][j];
 		}
 	}
@@ -84,17 +83,16 @@ void Board::addRandomTile() {
 	insertTile(i, j, val);
 }
 
-Board Board::boardAfterMoveToRight() {
-	Board nextBoard = *this;
-
+void Board::moveToRight() {
 	int i = 0,j = 0;
 	for (i=0;i<4; i++) {
 		// For each row, move the units to the right starting from the right
 		for(j=2;j>=0;j--) {
+			if(matrix[i][j] == 0)
+	 			continue;
 			moveTileToTheRight(i,j);
 		}
 	}
-	return nextBoard;
 }
 
 void Board::moveTileToTheRight(int i, int j) {
@@ -123,17 +121,16 @@ void Board::moveTileToTheRight(int i, int j) {
 	return;
 }
 
-Board Board::boardAfterMoveToLeft() {
-	Board nextBoard = *this;
-
+void Board::moveToLeft() {
 	int i = 0,j = 0;
 	for (i=0;i<4; i++) {
 		// For each row, move the units to the left starting from the left
 		for(j=1;j<=3;j++) {
+			if(matrix[i][j] == 0)
+	 			continue;
 			moveTileToTheLeft(i,j);
 		}
 	}
-	return nextBoard;
 }
 
 void Board::moveTileToTheLeft(int i, int j) {
@@ -161,18 +158,16 @@ void Board::moveTileToTheLeft(int i, int j) {
 	return;
 }
 
-Board Board::boardAfterMoveToTop() {
-	Board nextBoard = *this;
-
+void Board::moveToTop() {
 	int i = 0,j = 0;
 	for (j=0;j<4; j++) {
 		// For each column, move the units to the top starting from the top
 		for(i=1;i<4;i++) {
+			if(matrix[i][j] == 0)
+	 			continue;
 			moveTileToTheTop(i,j);
 		}
 	}
-
-	return nextBoard;
 }
 
 void Board::moveTileToTheTop(int i, int j) {
@@ -200,18 +195,16 @@ void Board::moveTileToTheTop(int i, int j) {
 	return;
 }
 
-Board Board::boardAfterMoveToBottom() {
-	Board nextBoard = *this;
-
+void Board::moveToBottom() {
 	int i = 0,j = 0;
 	for (j=0;j<4; j++) {
 		// For each column, move the units to the bottom starting from the bottom
 		for(i=2;i>=0;i--) {
+			if(matrix[i][j] == 0)
+	 			continue;
 			moveTileToTheBottom(i,j);
 		}
 	}
-
-	return nextBoard;
 }
 
 void Board::moveTileToTheBottom(int i, int j) {
@@ -225,7 +218,6 @@ void Board::moveTileToTheBottom(int i, int j) {
 	 * 2. The tile on the bottom has the same value as the current one
 	 * 3. The tile on the bottom has a different value
 	 */
-
 	if(matrix[i+1][j] == 0) {
 		matrix[i+1][j] = matrix[i][j];
 		matrix[i][j] = 0;

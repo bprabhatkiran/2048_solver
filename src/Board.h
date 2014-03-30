@@ -23,10 +23,10 @@ public:
 	Board(const Board& board);
 	Board(const unsigned short input[4][4]);
 
-	Board boardAfterMoveToRight();
-	Board boardAfterMoveToLeft();
-	Board boardAfterMoveToTop();
-	Board boardAfterMoveToBottom();
+	void moveToRight();
+	void moveToLeft();
+	void moveToTop();
+	void moveToBottom();
 
 	vector<int> availableCells();
 	bool canMakeMove();

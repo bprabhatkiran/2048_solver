@@ -12,7 +12,7 @@
 
 using namespace std;
 
-void solve(Board board);
+int solve(Board board);
 long long evaluate(Board board, int depth);
 long long maxFourLong(long long a, long long b, long long c, long long d);
 int moveToMake(long long a, long long b, long long c, long long d);
@@ -21,22 +21,24 @@ int moveToMake(long long a, long long b, long long c, long long d);
 
 int main() {
 
-	unsigned short input[4][4];
+	// unsigned short input[4][4] = {0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0};
+	unsigned short input[4][4] = {2,4,16,8,16,8,4,0,4,0,0,0,2,0,0,0};
 
 	unsigned short position[4][4] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
 	Board positionBoard(position);
 
-	cout <<"Enter the numbers in this order:"<<endl<<endl;
-	positionBoard.printBoard();
+	// cout <<"Enter the numbers in this order:"<<endl<<endl;
+	// positionBoard.printBoard();
 
-	for(int i=0;i<4;i++) {
-		for(int j=0;j<4;j++) {
-			cin>>input[i][j];
-		}
-	}
+	// for(int i=0;i<4;i++) {
+	// 	for(int j=0;j<4;j++) {
+	// 		cin>>input[i][j];
+	// 	}
+	// }
 
 	Board board(input);
+	board.printBoard();
 
 	while(1) {
 		if(!board.canMakeMove()) {
@@ -44,41 +46,73 @@ int main() {
 			break;
 		}
 
-		solve(board);
+		int result = solve(board);
+
+		// int pause;
+		// cin>>pause;
+
+		switch(result) {
+			case 0:
+				board.moveToBottom();
+				break;
+			case 1:
+				board.moveToTop();
+				break;
+			case 2:
+				board.moveToRight();
+				break;
+			case 3:
+				board.moveToLeft();
+				break;
+		}
+		board.printBoard();
 		
 		// Get the next board
-		cout<<endl<<endl;
-		int i, j, pos;
-		int val;
-		cin>>pos;
-		i = pos/4;
-		j = pos%4;
-		cin>>val;
-		board.insertTile(i, j, val);
-		if(!board.canMakeMove()) {
-			cout<<"Thats the end of it"<<endl;
-			break;
-		}
+		// cout<<endl<<endl;
+		// int i, j, pos;
+		// int val;
+		// cin>>pos;
+		// i = pos/4;
+		// j = pos%4;
+		// cin>>val;
+		// board.insertTile(i, j, val);
+		board.addRandomTile();
 	}
 
 	return 0;
 }
 
-void solve(Board board) {
+int solve(Board board) {
 	// Assume we have the board for now.
 	int val1, val2, val3, val4;
 
-	Board board1 = board.boardAfterMoveToBottom();
-	board1.addRandomTile();
+	Board board1 = board;
+	board1.moveToBottom();
+	// cout<<"Bottom move"<<endl;
+	// board1.printBoard();
+	if(board1.canMakeMove())
+		board1.addRandomTile();
 
-	Board board2 = board.boardAfterMoveToTop();
-	board2.addRandomTile();
+	Board board2 = board;
+	board2.moveToTop();
+	// cout<<"Top move"<<endl;
+	// board2.printBoard();
+	if(board2.canMakeMove())
+		board2.addRandomTile();
 
-	Board board3 = board.boardAfterMoveToRight();
-	board3.addRandomTile();
+	Board board3 = board;
+	board3.moveToRight();
+	// cout<<"Right move"<<endl;
+	// board3.printBoard();
+	if(board3.canMakeMove())
+		board3.addRandomTile();
 
-	Board board4 = board.boardAfterMoveToLeft();
-	board4.addRandomTile();
+	Board board4 = board;
+	board4.moveToLeft();
+	// cout<<"Left move"<<endl;
+	// board4.printBoard();
+	if(board4.canMakeMove())
+		board4.addRandomTile();
 
 	val1 = evaluate(board1, 1);
 	val2 = evaluate(board2, 1);
@@ -87,24 +121,7 @@ void solve(Board board) {
 
 	int direction = moveToMake(val1, val2, val3, val4);
 
-	switch(direction) {
-	case 0:
-		cout<<"Move down"<<endl;
-		board1.printBoard();
-		break;
-	case 1:
-		cout<<"Move Top"<<endl;
-		board2.printBoard();
-		break;
-	case 2:
-		cout<<"Move Right"<<endl;
-		board3.printBoard();
-		break;
-	case 3:
-		cout<<"Move Left"<<endl;
-		board4.printBoard();
-		break;
-	}
+	return direction;
 }
 
 long long evaluate(Board board, int depth) {
@@ -114,17 +131,25 @@ long long evaluate(Board board, int depth) {
 
 	int val1, val2, val3, val4;
 
-	Board board1 = board.boardAfterMoveToBottom();
-	board1.addRandomTile();
+	Board board1 = board;
+	board1.moveToBottom();
+	if(board1.canMakeMove())
+		board1.addRandomTile();
 
-	Board board2 = board.boardAfterMoveToTop();
-	board2.addRandomTile();
+	Board board2 = board;
+	board2.moveToTop();
+	if(board2.canMakeMove())
+		board2.addRandomTile();
 
-	Board board3 = board.boardAfterMoveToRight();
-	board3.addRandomTile();
+	Board board3 = board;
+	board3.moveToRight();
+	if(board3.canMakeMove())
+		board3.addRandomTile();
 
-	Board board4 = board.boardAfterMoveToLeft();
-	board4.addRandomTile();
+	Board board4 = board;
+	board4.moveToLeft();
+	if(board4.canMakeMove())
+		board4.addRandomTile();
 
 	val1 = evaluate(board1, depth+1);
 	val2 = evaluate(board2, depth+1);
