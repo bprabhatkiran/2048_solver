@@ -21,6 +21,7 @@ public:
 	Board boardAfterMoveToLeft();
 	Board boardAfterMoveToTop();
 	Board boardAfterMoveToBottom();
+	void addRandomTile();
 	long long evaluate();
 
 	void printBoard();
