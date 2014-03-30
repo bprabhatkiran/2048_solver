@@ -57,6 +57,18 @@ vector<int> Board::availableCells() {
 	return availableCells;
 }
 
+bool Board::isEqual(const Board& board) {
+	bool result = true;
+	for(int i = 0;i<4;i++) {
+		for (int j=0;j<4;j++) {
+			if (matrix[i][j] != board.matrix[i][j]) {
+				return false;
+			}
+		}
+	}
+	return result;
+}
+
 bool Board::canMakeMove() {
 	vector<int> availableCells = this->availableCells();
 
@@ -241,24 +253,32 @@ long long Board::evaluate() {
 
 	long long eval = 0;
 
-	if(!canMakeMove()) {
-		int maxValue = -1;
-		for(int i=0;i<4;i++) {
-			for(int j=0;j<4;j++) {
-				if(maxValue < matrix[i][j]) {
-					maxValue = matrix[i][j];
-				}
+	int maxValue = -1;
+	for(int i=0;i<4;i++) {
+		for(int j=0;j<4;j++) {
+			if(maxValue < matrix[i][j]) {
+				maxValue = matrix[i][j];
 			}
 		}
-		if((maxValue/2048) >0) {
-			return ((maxValue/2048) * 100000);
-		}
+	}
+	if((maxValue/512) > 0 && !canMakeMove()) {
+		// You cant make a move and you have big numbers on the board
+		return ((maxValue/512) * 1000);
+	} else if(maxValue/512 > 0 && canMakeMove()) {
+		// You can make a move and you have big tiles on the board
+		eval += + ((maxValue/512) * 1000);
+	} else if(!canMakeMove()) {
+		// If you cant do anything in this board, return the largest value of the tile you have here
 		return maxValue;
+	} else {
+		// Else just take the biggest tile you have currently
+		eval += maxValue;
 	}
 
 	int posi = -1;
 	int posj = -1;
-	int maxValue = -1;
+	
+	maxValue = -1;
 
 	int maxRow = -1;
 	int row = -1;
@@ -276,7 +296,7 @@ long long Board::evaluate() {
 			}
 		}
 		if(col == 0 || col == 3) {
-			eval += 100;
+			eval += 200;
 		}
 		maxCol = -1;
 		col = -1;
@@ -299,16 +319,16 @@ long long Board::evaluate() {
 		}
 		// End of the row, decide the heuristic value
 		if(row==0 || row==3) {
-			eval += 100;
+			eval += 200;
 		}
 		maxValue = -1;
 		row = -1;
 	}
 	if((posi == 0 || posi == 3) && (posj == 0 || posj == 3)) {
-		eval += 500;
+		eval += 1000;
 	}
 
-	eval += (numEmptySpaces * 10);
+	eval += (numEmptySpaces * 100);
 
 	return eval;
 }

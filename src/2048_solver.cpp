@@ -12,12 +12,16 @@
 
 using namespace std;
 
-int solve(Board board);
-long long evaluate(Board board, int depth);
-long long maxFourLong(long long a, long long b, long long c, long long d);
-int moveToMake(long long a, long long b, long long c, long long d);
+enum direction_t { Down, Up, Right, Left, NotDefined };
 
-#define MAX_DEPTH 8
+struct result_t {
+	long long eval;
+	direction_t direction;
+};
+
+struct result_t minmax(Board board, int playerIndex, int depth);
+
+#define MAX_DEPTH 7
 
 int main() {
 
@@ -40,30 +44,36 @@ int main() {
 	Board board(input);
 	board.printBoard();
 
+	int playerIndex = 1;
+
 	while(1) {
 		if(!board.canMakeMove()) {
 			cout<<"Thats the end of it"<<endl;
 			break;
 		}
 
-		int result = solve(board);
+		struct result_t result = minmax(board, playerIndex, 0);
 
 		// int pause;
 		// cin>>pause;
 
-		switch(result) {
-			case 0:
+		switch(result.direction) {
+			case Down:
 				board.moveToBottom();
 				break;
-			case 1:
+			case Up:
 				board.moveToTop();
 				break;
-			case 2:
+			case Right:
 				board.moveToRight();
 				break;
-			case 3:
+			case Left:
 				board.moveToLeft();
 				break;
+			case NotDefined:
+				cout<<"Nothing left to do"<<endl;
+				board.printBoard();
+				return 0;
 		}
 		board.printBoard();
 		
@@ -82,139 +92,90 @@ int main() {
 	return 0;
 }
 
-int solve(Board board) {
-	// Assume we have the board for now.
-	int val1, val2, val3, val4;
-
-	Board board1 = board;
-	board1.moveToBottom();
-	// cout<<"Bottom move"<<endl;
-	// board1.printBoard();
-	if(board1.canMakeMove())
-		board1.addRandomTile();
-
-	Board board2 = board;
-	board2.moveToTop();
-	// cout<<"Top move"<<endl;
-	// board2.printBoard();
-	if(board2.canMakeMove())
-		board2.addRandomTile();
-
-	Board board3 = board;
-	board3.moveToRight();
-	// cout<<"Right move"<<endl;
-	// board3.printBoard();
-	if(board3.canMakeMove())
-		board3.addRandomTile();
-
-	Board board4 = board;
-	board4.moveToLeft();
-	// cout<<"Left move"<<endl;
-	// board4.printBoard();
-	if(board4.canMakeMove())
-		board4.addRandomTile();
-
-	val1 = evaluate(board1, 1);
-	val2 = evaluate(board2, 1);
-	val3 = evaluate(board3, 1);
-	val4 = evaluate(board4, 1);
-
-	int direction = moveToMake(val1, val2, val3, val4);
-
-	return direction;
-}
-
-long long evaluate(Board board, int depth) {
+struct result_t minmax(Board board, int playerIndex, int depth) {
+	
 	if(depth == MAX_DEPTH) {
-		return board.evaluate();
+		struct result_t result;
+		result.direction = NotDefined;
+		result.eval = board.evaluate();
+		return result;
 	}
 
-	int val1, val2, val3, val4;
+	/*
+	 * Player index = 1, meaning out turn to play the game
+	 * Player index = -1, meaning computer is going to randomly insert a tile
+	 */
 
-	Board board1 = board;
-	board1.moveToBottom();
-	if(board1.canMakeMove())
-		board1.addRandomTile();
+	 if(playerIndex == 1) {
+	 	struct result_t results[4];
 
-	Board board2 = board;
-	board2.moveToTop();
-	if(board2.canMakeMove())
-		board2.addRandomTile();
+	 	for(int i=0;i<4;i++) {
+	 		Board newBoard(board);
+	 		switch((direction_t)i) {
+	 		case Down:
+		 		newBoard.moveToBottom();
+		 		break;
+	 		case Up:
+	 			newBoard.moveToTop();
+	 			break;
+	 		case Right:
+	 			newBoard.moveToRight();
+	 			break;
+	 		case Left:
+	 			newBoard.moveToLeft();
+	 			break;
+	 		case NotDefined:
+	 			cout<<"Not defined in the evaluation of player 1 index"<<endl;
+	 			break;
+		 	}
+		 	results[i] = minmax(newBoard, (playerIndex * -1), (depth + 1));
+		 }
+		 long long maxValue = -1;
+		 int index = -1;
+		 for(int i=0;i<4;i++) {
+		 	if(results[i].eval > maxValue) {
+		 		index = i;
+		 		maxValue = results[i].eval;
+		 	}
+		 }
+		 struct result_t result;
+		 result.eval = maxValue;
+		 result.direction = (direction_t)index;
+		 return result;
+	}
 
-	Board board3 = board;
-	board3.moveToRight();
-	if(board3.canMakeMove())
-		board3.addRandomTile();
+	// This is the case where the computer puts a random tile and we are going to do an exhaustive search
+	vector<int> availableCells = board.availableCells();
 
-	Board board4 = board;
-	board4.moveToLeft();
-	if(board4.canMakeMove())
-		board4.addRandomTile();
+	if(availableCells.size() == 0) {
+		struct result_t result;
+		result.eval = board.evaluate();
+		result.direction = NotDefined;
+		return result;
+	}
 
-	val1 = evaluate(board1, depth+1);
-	val2 = evaluate(board2, depth+1);
-	val3 = evaluate(board3, depth+1);
-	val4 = evaluate(board4, depth+1);
+	vector<struct result_t> results;
 
-	return maxFourLong(val1, val2, val3, val4);
-}
+	for(std::vector<int>::size_type i = 0; i != availableCells.size(); i++) {
+    		Board newBoard(board);
+    		int pos = availableCells[i];
+    		int posi = pos/4;
+    		int posj = pos%4;
+    		newBoard.insertTile(posi, posj, 2);
+    		struct result_t newResult = minmax(newBoard, (playerIndex * -1), (depth + 1));
+    		results.push_back(newResult);
+	}
 
-long long maxFourLong(long long a, long long b, long long c, long long d) {
-	if(a > b) {
-		if(a > c) {
-			if(a > d) {
-				return a;
-			} else {
-				return d;
-			}
-		} else if(c > d) {
-			return c;
-		}
-	} else {
-		if (b > c) {
-			if (b > d) {
-				return b;
-			} else {
-				return d;
-			}
-		}
-		else {
-			if (c > d) {
-				return c;
-			} else {
-				return d;
-			}
+	long long minValue = LONG_LONG_MAX;
+	int index = -1;
+
+	for(std::vector<int>::size_type i = 0; i != results.size(); i++) {
+		if(results[i].eval < minValue) {
+			minValue = results[i].eval;
+			index = i;
 		}
 	}
-	return a;
-}
 
-int moveToMake(long long a, long long b, long long c, long long d) {
-	if(a > b) {
-		if(a > c) {
-			if(a > d) {
-				return 0;
-			} else {
-				return 3;
-			}
-		} else if(c > d) {
-			return 2;
-		}
-	} else {
-		if (b > c) {
-			if (b > d) {
-				return 1;
-			} else {
-				return 3;
-			}
-		}
-		else {
-			if (c > d) {
-				return 2;
-			} else {
-				return 3;
-			}
-		}
-	}
-	return 0;
+	return results[index];
+
 }

@@ -37,6 +37,8 @@ public:
 	long long evaluate();
 
 	void printBoard();
+
+	bool isEqual(const Board& board);
 };
 
 #endif /* BOARD_H_ */
