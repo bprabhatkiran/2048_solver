@@ -13,21 +13,18 @@
 using namespace std;
 
 Board::Board(const Board& board) {
-	int i = 0,j = 0;
-
-	for (;i<4;i++) {
-		for(;j<4;j++) {
-			this->matrix[i][j] = board.matrix[i][j];
+	for (int i=0;i<4;i++) {
+		for(int j=0;j<4;j++) {
+			matrix[i][j] = board.matrix[i][j];
 		}
 	}
 }
 
 Board::Board(const unsigned short input[4][4]) {
-	int i = 0,j = 0;
-
-	for (;i<4;i++) {
-		for(;j<4;j++) {
-			this->matrix[i][j] = input[i][j];
+	for (int i=0;i<4;i++) {
+		for(int j=0;j<4;j++) {
+			cout<<i<<"\t\t"<<j<<"\t\t"<<input[i][j]<<endl;
+			matrix[i][j] = input[i][j];
 		}
 	}
 }
@@ -62,7 +59,7 @@ vector<int> Board::availableCells() {
 }
 
 bool Board::canMakeMove() {
-	vector<int> availableCells = availableCells();
+	vector<int> availableCells = this->availableCells();
 
 	if(availableCells.size() == 0) {
 		return false;
@@ -72,7 +69,7 @@ bool Board::canMakeMove() {
 }
 
 void Board::addRandomTile() {
-	vector<int> availableCells = availableCells();
+	vector<int> availableCells = this->availableCells();
 	int index = rand()%availableCells.size();
 	int pos = availableCells.at(index);
 
@@ -91,7 +88,7 @@ Board Board::boardAfterMoveToRight() {
 	Board nextBoard = *this;
 
 	int i = 0,j = 0;
-	for (;i<4; i++) {
+	for (i=0;i<4; i++) {
 		// For each row, move the units to the right starting from the right
 		for(j=2;j>=0;j--) {
 			moveTileToTheRight(i,j);
@@ -130,7 +127,7 @@ Board Board::boardAfterMoveToLeft() {
 	Board nextBoard = *this;
 
 	int i = 0,j = 0;
-	for (;i<4; i++) {
+	for (i=0;i<4; i++) {
 		// For each row, move the units to the left starting from the left
 		for(j=1;j<=3;j++) {
 			moveTileToTheLeft(i,j);
@@ -168,7 +165,7 @@ Board Board::boardAfterMoveToTop() {
 	Board nextBoard = *this;
 
 	int i = 0,j = 0;
-	for (;j<4; j++) {
+	for (j=0;j<4; j++) {
 		// For each column, move the units to the top starting from the top
 		for(i=1;i<4;i++) {
 			moveTileToTheTop(i,j);
@@ -207,7 +204,7 @@ Board Board::boardAfterMoveToBottom() {
 	Board nextBoard = *this;
 
 	int i = 0,j = 0;
-	for (;j<4; j++) {
+	for (j=0;j<4; j++) {
 		// For each column, move the units to the bottom starting from the bottom
 		for(i=2;i>=0;i--) {
 			moveTileToTheBottom(i,j);

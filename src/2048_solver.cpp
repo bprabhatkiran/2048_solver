@@ -23,6 +23,13 @@ int main() {
 
 	unsigned short input[4][4];
 
+	unsigned short position[4][4] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+
+	Board positionBoard(position);
+
+	cout <<"Enter the numbers in this order:"<<endl<<endl;
+	positionBoard.printBoard();
+
 	for(int i=0;i<4;i++) {
 		for(int j=0;j<4;j++) {
 			cin>>input[i][j];
@@ -32,11 +39,13 @@ int main() {
 	Board board(input);
 
 	while(1) {
-		solve(board);
 		if(!board.canMakeMove()) {
 			cout<<"Thats the end of it"<<endl;
 			break;
 		}
+
+		solve(board);
+		
 		// Get the next board
 		cout<<endl<<endl;
 		int i, j, pos;
