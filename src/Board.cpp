@@ -289,6 +289,58 @@ void Board::moveTileToTheBottom(int i, int j) {
 	return;
 }
 
+monotonicity Board::rowMonotonicity(int i) {
+
+	monotonicity result = Undefined;
+
+	for(int j=0;j<3;j++) {
+		if(matrix[i][j] == matrix[i][j+1]) {
+			if(result == Undefined || result == Equal) {
+				result = Equal;
+			} 
+		} else if(matrix[i][j] < matrix[i][j+1]) {
+			if(result == Undefined || result == Equal) {
+				result = Increasing;
+			} else if(result == Decreasing) {
+				return Undefined;
+			}
+		} else if(matrix[i][j] > matrix[i][j+1]) {
+			if(result == Undefined || result == Equal) {
+				result = Decreasing;
+			} else if(result == Increasing) {
+				return Undefined;
+			}
+		}
+	}
+	return result;
+}
+
+monotonicity Board::colMonotonicity(int j) {
+
+	monotonicity result = Undefined;
+
+	for(int i=0;i<3;j++) {
+		if(matrix[i][j] == matrix[i+1][j]) {
+			if(result == Undefined || result == Equal) {
+				result = Equal;
+			} 
+		} else if(matrix[i][j] < matrix[i+1][j]) {
+			if(result == Undefined || result == Equal) {
+				result = Increasing;
+			} else if(result == Decreasing) {
+				return Undefined;
+			}
+		} else if(matrix[i][j] > matrix[i+1][j]) {
+			if(result == Undefined || result == Equal) {
+				result = Decreasing;
+			} else if(result == Increasing) {
+				return Undefined;
+			}
+		}
+	}
+	return result;
+}
+
 long long Board::evaluate() {
 	/*
 	 * Lets keep it simple.
@@ -299,74 +351,133 @@ long long Board::evaluate() {
 
 	long long eval = 0;
 
-	int posi = -1;
-	int posj = -1;
-
 	int emptySpaces = 0;
+	int possibleMerges = 0;
 
 	int maxValue = -1;
+
 	for(int i=0;i<4;i++) {
 		for(int j=0;j<4;j++) {
 			if(matrix[i][j] == 0) {
 				emptySpaces++;
 			} else if(maxValue < matrix[i][j]) {
 				maxValue = matrix[i][j];
-				posi = i;
-				posj = j;
-			} else if(maxValue == matrix[i][j]) {
-				// Lets keep it in the corners
-				if (((i == 0) || (i == 3)) && ((j == 0) || (j == 3))) {
-					posi = i;
-					posj = j;
+			}
+
+			if(matrix[i][j] != 0) {
+				if((i-1)>=0) {
+					if(matrix[i-1][j] == matrix[i][j]) {
+						possibleMerges++;
+					}
+				}
+				if((i+1)<=3) {
+					if(matrix[i+1][j] == matrix[i][j]) {
+						possibleMerges++;
+					}
+				}
+				if((j-1)>=0) {
+					if(matrix[i][j-1] == matrix[i][j]) {
+						possibleMerges++;
+					}
+				}
+				if((j+1)<=3) {
+					if(matrix[i][j+1] == matrix[i][j]) {
+						possibleMerges++;
+					}
 				}
 			}
 		}
 	}
 
-	eval += (emptySpaces * 2000);
-
 	if(!canMakeMove()) {
-		return ((8192/maxValue) * 100);
-	} else {
-		if((posi == 0 || posi == 3) && (posj == 0 || posj == 3)) {
-			eval += ((8192/maxValue) * 10000);
-		} else {
-			eval += ((8192/maxValue) * 2500);
-		}
-	}
+		return maxValue;
+	} 
 
-	int maxRow = -1;
-	int row = -1;
-
-	int maxCol = -1;
-	int col = -1;
-
-	for(int j=0;j<4;j++) {
-		for(int i=0;i<4;i++) {
-			if(matrix[i][j] > maxCol) {
-				maxCol = matrix[i][j];
-				col = j;
-			}
-		}
-		if(col == 0 || col == 3) {
-			eval += 1000;
-		}
-		maxCol = -1;
-		col = -1;
-	}
+	monotonicity rows = Undefined;
 
 	for(int i=0;i<4;i++) {
-		for(int j=0;j<4;j++) {
-			if(matrix[i][j] > maxRow) {
-				maxRow = matrix[i][j];
-				row = j;
-			}
+		monotonicity rowMonotonicity = this->rowMonotonicity(i);
+		if(rowMonotonicity == Undefined) {
+			rows = Undefined;
+			break;
 		}
-		// End of the row, decide the heuristic value
-		if(row==0 || row==3) {
-			eval += 1000;
+		if(rows == Increasing && rowMonotonicity == Decreasing) {
+			rows = Undefined;
+			break;
+		}
+		if(rows == Decreasing && rowMonotonicity == Increasing) {
+			rows = Undefined;
+			break;
+		} else if(rows == Equal || rows == Undefined) {
+			rows = rowMonotonicity;
 		}
 	}
+
+	monotonicity cols = Undefined;
+
+	for(int j=0;j<4;j++) {
+		monotonicity colMonotonicity = this->colMonotonicity(j);
+		if(colMonotonicity == Undefined) {
+			cols = Undefined;
+			break;
+		}
+		if(cols == Increasing && colMonotonicity == Decreasing) {
+			cols = Undefined;
+			break;
+		}
+		if(cols == Decreasing && colMonotonicity == Increasing) {
+			cols = Undefined;
+			break;
+		} else if(cols == Equal || cols == Undefined) {
+			cols = colMonotonicity;
+		}
+	}
+
+	if(cols != Undefined && rows != Undefined) {
+		eval += 10000;
+	} else if(cols != Undefined && rows == Undefined) {
+		eval += 2500;
+	} else if(cols == Undefined && rows != Undefined) {
+		eval += 2500;
+	} else {
+		eval = maxValue;
+	}
+
+	eval += (emptySpaces * 1000);
+	eval += (possibleMerges * 100);
+
+	// int maxRow = -1;
+	// int row = -1;
+
+	// int maxCol = -1;
+	// int col = -1;
+
+	// for(int j=0;j<4;j++) {
+	// 	for(int i=0;i<4;i++) {
+	// 		if(matrix[i][j] > maxCol) {
+	// 			maxCol = matrix[i][j];
+	// 			col = j;
+	// 		}
+	// 	}
+	// 	if(col == 0 || col == 3) {
+	// 		eval += 1000;
+	// 	}
+	// 	maxCol = -1;
+	// 	col = -1;
+	// }
+
+	// for(int i=0;i<4;i++) {
+	// 	for(int j=0;j<4;j++) {
+	// 		if(matrix[i][j] > maxRow) {
+	// 			maxRow = matrix[i][j];
+	// 			row = j;
+	// 		}
+	// 	}
+	// 	// End of the row, decide the heuristic value
+	// 	if(row==0 || row==3) {
+	// 		eval += 1000;
+	// 	}
+	// }
 
 	return eval;
 }

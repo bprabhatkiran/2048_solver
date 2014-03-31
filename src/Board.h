@@ -10,6 +10,8 @@
 
 #include <vector>
 
+enum monotonicity { Increasing, Decreasing, Equal, Undefined };
+
 using namespace std;
 
 class Board {
@@ -20,6 +22,8 @@ class Board {
 	void moveTileToTheLeft(int i,int j);
 	void moveTileToTheTop(int i,int j);
 	void moveTileToTheBottom(int i,int j);
+	monotonicity rowMonotonicity(int i);
+	monotonicity colMonotonicity(int j);
 public:
 	Board(const Board& board);
 	Board(const unsigned short input[4][4]);
