@@ -19,30 +19,30 @@ struct result_t {
 	direction_t direction;
 };
 
-struct result_t minmax(Board board, int playerIndex, int depth);
+struct result_t alpha_beta(Board board, int playerIndex, int depth, struct result_t alpha, struct result_t beta);
+struct result_t maximum(struct result_t a, struct result_t b);
+struct result_t minimum(struct result_t a, struct result_t b);
 
-#define MAX_DEPTH 7
+#define MAX_DEPTH 4
 
 int main() {
 
 	unsigned short input[4][4] = {0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0};
 	// unsigned short input[4][4] = {0,0,0,2,0,0,8,128,128,2,64,2,2,32,128,8};
 
+	Board board(input);
+
 	unsigned short position[4][4] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
 	Board positionBoard(position);
 
-	// cout <<"Enter the numbers in this order:"<<endl<<endl;
-	// positionBoard.printBoard();
+	struct result_t alpha;
+	alpha.eval = LONG_LONG_MIN;
+	alpha.direction = NotDefined;
 
-	// for(int i=0;i<4;i++) {
-	// 	for(int j=0;j<4;j++) {
-	// 		cin>>input[i][j];
-	// 	}
-	// }
-
-	Board board(input);
-	// board.printBoard();
+	struct result_t beta;
+	beta.eval = LONG_LONG_MAX;
+	beta.direction = NotDefined;
 
 	while(1) {
 		if(!board.canMakeMove()) {
@@ -54,10 +54,8 @@ int main() {
 		cout<<"Solving this board"<<endl;
 		board.printBoard();
 
-		struct result_t result = minmax(board, 1, 0);
+		struct result_t result = alpha_beta(board, 1, 0, alpha, beta);
 
-		// int pause;
-		// cin>>pause;
 
 		switch(result.direction) {
 			case Down:
@@ -81,25 +79,16 @@ int main() {
 				board.printBoard();
 				return 0;
 		}
-		
-		// Get the next board
-		// cout<<endl<<endl;
-		// int i, j, pos;
-		// int val;
-		// cin>>pos;
-		// i = pos/4;
-		// j = pos%4;
-		// cin>>val;
-		// board.insertTile(i, j, val);
+		// Instead get the state from the user
 		board.addRandomTile();
 	}
 
 	return 0;
 }
 
-struct result_t minmax(Board board, int playerIndex, int depth) {
+struct result_t alpha_beta(Board board, int playerIndex, int depth, struct result_t alpha, struct result_t beta) {
 	
-	if(depth == MAX_DEPTH) {
+	if(depth == MAX_DEPTH || (playerIndex == 1 && !board.canMakeMove()) || (playerIndex == -1 && board.availableCells().size() == 0)) {
 		struct result_t result;
 		result.direction = NotDefined;
 		result.eval = board.evaluate();
@@ -112,8 +101,6 @@ struct result_t minmax(Board board, int playerIndex, int depth) {
 	 */
 
 	 if(playerIndex == 1) {
-	 	vector<struct result_t> results;
-
 	 	for(int i=0;i<4;i++) {
 	 		Board newBoard(board);
 	 		switch((direction_t)i) {
@@ -135,72 +122,51 @@ struct result_t minmax(Board board, int playerIndex, int depth) {
 
 		 	if(newBoard.isEqual(board)) {
 		 		continue;
-		 	} else {
-		 		struct result_t result = minmax(newBoard, (playerIndex * -1), (depth + 1));
-		 		result.direction = (direction_t)i;
-		 		results.push_back(result);
 		 	}
-		 }
 
-		 long long maxValue = -1;
-		 int index = -1;
-		 for(std::vector<int>::size_type i = 0; i != results.size(); i++) {
-		 	if(results[i].eval > maxValue) {
-		 		index = i;
-		 		maxValue = results[i].eval;
-		 	}
-		 }
+	 		struct result_t child_result = alpha_beta(newBoard, (playerIndex * -1), (depth + 1), alpha, beta);
+	 		child_result.direction = (direction_t)i;
 
-		 if(index == -1) {
-		 	struct result_t result;
-		 	result.eval = board.evaluate();
-		 	result.direction = NotDefined;
-		 	return result;
-		 }
+	 		// if(depth == 0) {
+	 		// 	if(newBoard.is_monotonous()) {
+	 		// 		cout<<"Child is monotonous"<<endl;
+	 		// 	} else {
+	 		// 		cout<<"Child is not monotonous"<<endl;
+	 		// 	}
+	 		// 	newBoard.printBoard();
+	 		// 	cout<<endl;
+	 		// 	cout<<"Direction:\t"<<child_result.direction<<endl;
+	 		// 	cout<<"Result:\t"<<child_result.eval<<endl;
+	 		// 	cout<<endl;
+	 		// }
 
-		 return results[index];
+	 		alpha = maximum(alpha, child_result);
+
+	 		if(beta.eval <= alpha.eval)
+	 			break;
+		 }
+		 return alpha;
 	}
 
-	// This is the case where the computer puts a random tile and we are going to do an exhaustive search
 	vector<int> availableCells = board.availableCells();
-
-	if(availableCells.size() == 0) {
-		struct result_t result;
-		result.eval = board.evaluate();
-		result.direction = NotDefined;
-		return result;
-	}
-
-	vector<struct result_t> results;
-
 	for(std::vector<int>::size_type i = 0; i != availableCells.size(); i++) {
     		Board newBoard(board);
     		int pos = availableCells[i];
     		int posi = pos/4;
     		int posj = pos%4;
     		newBoard.insertTile(posi, posj, 2);
-    		struct result_t newResult = minmax(newBoard, (playerIndex * -1), (depth + 1));
-    		results.push_back(newResult);
+    		struct result_t child_result = alpha_beta(newBoard, (playerIndex * -1), (depth + 1), alpha, beta);
+    		beta = minimum(beta, child_result);
+    		if(beta.eval <= alpha.eval)
+    			break;
 	}
+	return beta;
+}
 
-	long long minValue = LONG_LONG_MAX;
-	int index = -1;
+struct result_t maximum(struct result_t a, struct result_t b) {
+	return (a.eval>b.eval) ? a: b;
+}
 
-	for(std::vector<int>::size_type i = 0; i != results.size(); i++) {
-		if(results[i].eval < minValue) {
-			minValue = results[i].eval;
-			index = i;
-		}
-	}
-
-	if(index == -1) {
-		cout<<"This should never happen as there is atleast once cell which can be filled"<<endl;
-		struct result_t result;
-	 	result.eval = board.evaluate();
-	 	result.direction = NotDefined;
-	 	return result;
-	}
-
-	return results[index];
-
+struct result_t minimum(struct result_t a, struct result_t b) {
+	return (a.eval<b.eval) ? a: b;
 }

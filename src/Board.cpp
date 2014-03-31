@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
@@ -319,7 +320,7 @@ monotonicity Board::colMonotonicity(int j) {
 
 	monotonicity result = Undefined;
 
-	for(int i=0;i<3;j++) {
+	for(int i=0;i<3;i++) {
 		if(matrix[i][j] == matrix[i+1][j]) {
 			if(result == Undefined || result == Equal) {
 				result = Equal;
@@ -341,59 +342,9 @@ monotonicity Board::colMonotonicity(int j) {
 	return result;
 }
 
-long long Board::evaluate() {
-	/*
-	 * Lets keep it simple.
-	 * 1. We want the highest valued tile in the corners. (500)
-	 * 2. For each row and column, keep the highest tile on the edge. (100)
-	 * 3. We want more space to make more moves. So count the number of empty spaces. (10)
-	 */
-
-	long long eval = 0;
-
-	int emptySpaces = 0;
-	int possibleMerges = 0;
-
-	int maxValue = -1;
-
-	for(int i=0;i<4;i++) {
-		for(int j=0;j<4;j++) {
-			if(matrix[i][j] == 0) {
-				emptySpaces++;
-			} else if(maxValue < matrix[i][j]) {
-				maxValue = matrix[i][j];
-			}
-
-			if(matrix[i][j] != 0) {
-				if((i-1)>=0) {
-					if(matrix[i-1][j] == matrix[i][j]) {
-						possibleMerges++;
-					}
-				}
-				if((i+1)<=3) {
-					if(matrix[i+1][j] == matrix[i][j]) {
-						possibleMerges++;
-					}
-				}
-				if((j-1)>=0) {
-					if(matrix[i][j-1] == matrix[i][j]) {
-						possibleMerges++;
-					}
-				}
-				if((j+1)<=3) {
-					if(matrix[i][j+1] == matrix[i][j]) {
-						possibleMerges++;
-					}
-				}
-			}
-		}
-	}
-
-	if(!canMakeMove()) {
-		return maxValue;
-	} 
-
+bool Board::is_monotonous() {
 	monotonicity rows = Undefined;
+	monotonicity cols = Undefined;
 
 	for(int i=0;i<4;i++) {
 		monotonicity rowMonotonicity = this->rowMonotonicity(i);
@@ -413,8 +364,6 @@ long long Board::evaluate() {
 		}
 	}
 
-	monotonicity cols = Undefined;
-
 	for(int j=0;j<4;j++) {
 		monotonicity colMonotonicity = this->colMonotonicity(j);
 		if(colMonotonicity == Undefined) {
@@ -432,52 +381,70 @@ long long Board::evaluate() {
 			cols = colMonotonicity;
 		}
 	}
+	return (rows != Undefined) && (cols != Undefined);
+}
 
-	if(cols != Undefined && rows != Undefined) {
-		eval += 10000;
-	} else if(cols != Undefined && rows == Undefined) {
-		eval += 2500;
-	} else if(cols == Undefined && rows != Undefined) {
-		eval += 2500;
-	} else {
-		eval = maxValue;
+int Board::smoothness_count(int i, int j) {
+	int result = 0;
+	if(i+1<4) {
+		result += abs(matrix[i][j] - matrix[i+1][j]);
+	}
+	if(i-1>0) {
+		result += abs(matrix[i][j] - matrix[i-1][j]);
+	}
+	if(j+1<4) {
+		result += abs(matrix[i][j] - matrix[i][j+1]);
+	}
+	if(j-1>0) {
+		result += abs(matrix[i][j] - matrix[i][j-1]);
+	}
+	return result;
+}
+
+int Board::possible_merges(int i, int j) {
+	int result = 0;
+	if(i+1<4) {
+		if(matrix[i][j] == matrix[i+1][j]) ++result;
+	}
+	if(i-1>0) {
+		if(matrix[i][j] == matrix[i-1][j]) ++result;
+	}
+	if(j+1<4) {
+		if(matrix[i][j] == matrix[i][j+1]) ++result;
+	}
+	if(j-1>0) {
+		if(matrix[i][j] == matrix[i][j-1]) ++result;
+	}
+	return result;
+}
+
+long long Board::evaluate() {
+	
+	long long eval = 0;
+
+	int emptySpaces = 0;
+	int mergeDifference = 0;
+	int num_possible_merges = 0;
+	int maxValue = -1;
+
+	for(int i=0;i<4;i++) {
+		for(int j=0;j<4;j++) {
+			if(matrix[i][j] == 0) {
+				emptySpaces++;
+			} else if(maxValue < matrix[i][j]) {
+				maxValue = matrix[i][j];
+			}
+			mergeDifference += smoothness_count(i, j);
+			num_possible_merges += possible_merges(i, j);
+		}
 	}
 
-	eval += (emptySpaces * 1000);
-	eval += (possibleMerges * 100);
+	if(is_monotonous()) {
+		return 1000;
+	}
 
-	// int maxRow = -1;
-	// int row = -1;
-
-	// int maxCol = -1;
-	// int col = -1;
-
-	// for(int j=0;j<4;j++) {
-	// 	for(int i=0;i<4;i++) {
-	// 		if(matrix[i][j] > maxCol) {
-	// 			maxCol = matrix[i][j];
-	// 			col = j;
-	// 		}
-	// 	}
-	// 	if(col == 0 || col == 3) {
-	// 		eval += 1000;
-	// 	}
-	// 	maxCol = -1;
-	// 	col = -1;
-	// }
-
-	// for(int i=0;i<4;i++) {
-	// 	for(int j=0;j<4;j++) {
-	// 		if(matrix[i][j] > maxRow) {
-	// 			maxRow = matrix[i][j];
-	// 			row = j;
-	// 		}
-	// 	}
-	// 	// End of the row, decide the heuristic value
-	// 	if(row==0 || row==3) {
-	// 		eval += 1000;
-	// 	}
-	// }
+	eval += ((emptySpaces * 2000) + (num_possible_merges * 100));
+	eval -= (mergeDifference);
 
 	return eval;
 }

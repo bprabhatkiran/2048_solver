@@ -22,11 +22,14 @@ class Board {
 	void moveTileToTheLeft(int i,int j);
 	void moveTileToTheTop(int i,int j);
 	void moveTileToTheBottom(int i,int j);
-	monotonicity rowMonotonicity(int i);
-	monotonicity colMonotonicity(int j);
+	int smoothness_count(int i, int j);
+	int possible_merges(int i, int j);
 public:
 	Board(const Board& board);
 	Board(const unsigned short input[4][4]);
+
+	monotonicity rowMonotonicity(int i);
+	monotonicity colMonotonicity(int j);
 
 	void moveToRight();
 	void moveToLeft();
@@ -44,6 +47,8 @@ public:
 	void printBoard();
 
 	bool isEqual(const Board& board);
+
+	bool is_monotonous();
 };
 
 #endif /* BOARD_H_ */
