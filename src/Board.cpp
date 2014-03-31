@@ -68,12 +68,20 @@ bool Board::isEqual(const Board& board) {
 }
 
 bool Board::canMakeMove() {
-	vector<int> availableCells = this->availableCells();
 
-	if(availableCells.size() == 0) {
+	Board board1(*this);
+	Board board2(*this);
+	Board board3(*this);
+	Board board4(*this);
+
+	board1.moveToBottom();
+	board2.moveToRight();
+	board3.moveToTop();
+	board4.moveToLeft();
+
+	if(this->isEqual(board1) && this->isEqual(board2) && this->isEqual(board3) && this->isEqual(board4)) {
 		return false;
 	}
-
 	return true;
 }
 
@@ -291,40 +299,47 @@ long long Board::evaluate() {
 
 	long long eval = 0;
 
+	int posi = -1;
+	int posj = -1;
+
+	int emptySpaces = 0;
+
 	int maxValue = -1;
 	for(int i=0;i<4;i++) {
 		for(int j=0;j<4;j++) {
-			if(maxValue < matrix[i][j]) {
+			if(matrix[i][j] == 0) {
+				emptySpaces++;
+			} else if(maxValue < matrix[i][j]) {
 				maxValue = matrix[i][j];
+				posi = i;
+				posj = j;
+			} else if(maxValue == matrix[i][j]) {
+				// Lets keep it in the corners
+				if (((i == 0) || (i == 3)) && ((j == 0) || (j == 3))) {
+					posi = i;
+					posj = j;
+				}
 			}
 		}
 	}
-	if((maxValue/512) > 0 && !canMakeMove()) {
-		// You cant make a move and you have big numbers on the board
-		return ((maxValue/512) * 1000);
-	} else if(maxValue/512 > 0 && canMakeMove()) {
-		// You can make a move and you have big tiles on the board
-		eval += + ((maxValue/512) * 1000);
-	} else if(!canMakeMove()) {
-		// If you cant do anything in this board, return the largest value of the tile you have here
-		return maxValue;
-	} else {
-		// Else just take the biggest tile you have currently
-		eval += maxValue;
-	}
 
-	int posi = -1;
-	int posj = -1;
-	
-	maxValue = -1;
+	eval += (emptySpaces * 2000);
+
+	if(!canMakeMove()) {
+		return ((8192/maxValue) * 100);
+	} else {
+		if((posi == 0 || posi == 3) && (posj == 0 || posj == 3)) {
+			eval += ((8192/maxValue) * 10000);
+		} else {
+			eval += ((8192/maxValue) * 2500);
+		}
+	}
 
 	int maxRow = -1;
 	int row = -1;
 
 	int maxCol = -1;
 	int col = -1;
-
-	int numEmptySpaces = 0;
 
 	for(int j=0;j<4;j++) {
 		for(int i=0;i<4;i++) {
@@ -334,7 +349,7 @@ long long Board::evaluate() {
 			}
 		}
 		if(col == 0 || col == 3) {
-			eval += 200;
+			eval += 1000;
 		}
 		maxCol = -1;
 		col = -1;
@@ -346,27 +361,12 @@ long long Board::evaluate() {
 				maxRow = matrix[i][j];
 				row = j;
 			}
-			if(matrix[i][j] > maxValue) {
-				maxValue = matrix[i][j];
-				posi = i;
-				posj = j;
-			}
-			if(matrix[i][j] == 0) {
-				numEmptySpaces++;
-			}
 		}
 		// End of the row, decide the heuristic value
 		if(row==0 || row==3) {
-			eval += 200;
+			eval += 1000;
 		}
-		maxValue = -1;
-		row = -1;
 	}
-	if((posi == 0 || posi == 3) && (posj == 0 || posj == 3)) {
-		eval += 1000;
-	}
-
-	eval += (numEmptySpaces * 100);
 
 	return eval;
 }

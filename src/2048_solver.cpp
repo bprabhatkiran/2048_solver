@@ -25,8 +25,8 @@ struct result_t minmax(Board board, int playerIndex, int depth);
 
 int main() {
 
-	// unsigned short input[4][4] = {0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0};
-	unsigned short input[4][4] = {4,4,2,2,0,16,16,2,2,0,8,0,0,0,2,0};
+	unsigned short input[4][4] = {0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0};
+	// unsigned short input[4][4] = {0,0,0,2,0,0,8,128,128,2,64,2,2,32,128,8};
 
 	unsigned short position[4][4] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 
@@ -47,6 +47,7 @@ int main() {
 	while(1) {
 		if(!board.canMakeMove()) {
 			cout<<"Thats the end of it"<<endl;
+			board.printBoard();
 			break;
 		}
 
@@ -149,6 +150,14 @@ struct result_t minmax(Board board, int playerIndex, int depth) {
 		 		maxValue = results[i].eval;
 		 	}
 		 }
+
+		 if(index == -1) {
+		 	struct result_t result;
+		 	result.eval = board.evaluate();
+		 	result.direction = NotDefined;
+		 	return result;
+		 }
+
 		 return results[index];
 	}
 
@@ -182,6 +191,14 @@ struct result_t minmax(Board board, int playerIndex, int depth) {
 			minValue = results[i].eval;
 			index = i;
 		}
+	}
+
+	if(index == -1) {
+		cout<<"This should never happen as there is atleast once cell which can be filled"<<endl;
+		struct result_t result;
+	 	result.eval = board.evaluate();
+	 	result.direction = NotDefined;
+	 	return result;
 	}
 
 	return results[index];

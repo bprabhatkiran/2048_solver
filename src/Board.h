@@ -13,7 +13,8 @@
 using namespace std;
 
 class Board {
-	unsigned short matrix[4][4];
+	// -1 has a special significance in the board
+	signed short matrix[4][4];
 
 	void moveTileToTheRight(int i,int j);
 	void moveTileToTheLeft(int i,int j);
